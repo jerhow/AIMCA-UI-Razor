@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Net.Http; // Required for HttpClient
-using System.Net.Http.Headers; // Required for AuthenticationHeaderValue
-using System.Text; // Required for StringContent encoding
-using System.Text.Json; // Required for JsonSerializer
-using MedicalCodingAssistant.UI.Models; // Your models namespace
-using Microsoft.Extensions.Configuration; // Required for IConfiguration
-using System.Threading.Tasks; // Required for async methods
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using MedicalCodingAssistant.UI.Models;
 
 namespace MedicalCodingAssistant.UI.Pages;
 
