@@ -118,6 +118,9 @@ secrets.json
 # Publish output
 **/publish/
 
+# App deployment zip files
+**/app_deploy_*.zip
+
 # Cache files and temporary files produced by the SDK.
 *.dotnet_build_marker_file
 *.dotnet_incremental_lookup_file
