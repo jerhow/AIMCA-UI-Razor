@@ -3,6 +3,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
+builder.Services.AddHttpClient(); // Ensures IHttpClientFactory is available
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -19,8 +21,8 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
+app.MapRazorPages();
+
+app.UseStaticFiles();
 
 app.Run();

@@ -1,10 +1,90 @@
 ﻿@page
-@model IndexModel
+@model MedicalCodingAssistant.UI.Pages.IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "API Client";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">API Search Client</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <form method="post">
+            @* Anti-forgery token - important for security *@
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label asp-for="Query" class="form-label">Search Query:</label>
+                <input asp-for="Query" type="text" class="form-control" placeholder="Enter search query" required />
+                <span asp-validation-for="Query" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="MaxSqlResults" class="form-label">Max SQL Results:</label>
+                <input asp-for="MaxSqlResults" type="number" min="1" class="form-control" required />
+                <span asp-validation-for="MaxSqlResults" class="text-danger"></span>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Search API</button>
+            </div>
+        </form>
+
+        <hr />
+
+        @* Display Error Messages *@
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>Error:</strong> @Model.ErrorMessage
+            </div>
+        }
+
+        @* Display API Results *@
+        @if (Model.ApiResult != null)
+        {
+            <div class="mt-4">
+                <h3>API Results</h3>
+                <p>
+                    <strong>Used Free Text Fallback:</strong> @Model.ApiResult.UsedFreeTextFallback <br />
+                    <strong>Total SQL Result Count:</strong> @Model.ApiResult.TotalSqlResultCount
+                </p>
+
+                @if (Model.ApiResult.SearchResults != null && Model.ApiResult.SearchResults.Any())
+                {
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Code</th>
+                                <th>Description</th>
+                                <th>Source</th>
+                                <th>Confidence</th>
+                                <th>Reason</th>
+                                <th>Is Valid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ApiResult.SearchResults.OrderBy(r => r.Rank))
+                            {
+                                <tr>
+                                    <td>@item.Rank</td>
+                                    <td>@item.Code</td>
+                                    <td>@item.Description</td>
+                                    <td>@item.Source</td>
+                                    <td>@item.Confidence</td>
+                                    <td>@item.Reason</td>
+                                    <td>@item.IsValid</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No search results returned.</p>
+                }
+            </div>
+        }
+
+    </div>
 </div>

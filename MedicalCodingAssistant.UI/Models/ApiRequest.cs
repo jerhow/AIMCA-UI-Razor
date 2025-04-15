@@ -1,4 +1,4 @@
-namespace ApiClientUI.Models;
+namespace MedicalCodingAssistant.UI.Models;
 
 public class ApiRequest
 {
