@@ -4,32 +4,31 @@
     ViewData["Title"] = "API Client";
 }
 
-<div class="text-center">
-    <h1 class="display-4">API Search Client</h1>
-</div>
-
 <div class="row">
-    <div class="col-md-6 offset-md-3">
-        <form method="post">
-            @* Anti-forgery token - important for security *@
-            @Html.AntiForgeryToken()
+    <div class="col-md-10 offset-md-1">
+        <div class="col-lg-10 col-xl-8"> 
+            <div>
+                <h1 class="display-6">ICD-10-CM Code Search</h1>
+            </div>
+            <form method="post" id="search-form">
+                @* Anti-forgery token - important for security *@
+                @Html.AntiForgeryToken()
 
-            <div class="mb-3">
-                <label asp-for="Query" class="form-label">Search Query:</label>
-                <input asp-for="Query" type="text" class="form-control" placeholder="Enter search query" required />
-                <span asp-validation-for="Query" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="MaxSqlResults" class="form-label">Max SQL Results:</label>
-                <input asp-for="MaxSqlResults" type="number" min="1" class="form-control" required />
-                <span asp-validation-for="MaxSqlResults" class="text-danger"></span>
-            </div>
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary">Search API</button>
-            </div>
-        </form>
-
-        <hr />
+                <div class="mb-3">
+                    <label asp-for="Query" class="form-label">Diagnosis or clinical description:</label>
+                    <input asp-for="Query" type="text" class="form-control" placeholder="Enter search query" required />
+                    <span asp-validation-for="Query" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="MaxSqlResults" class="form-label">Max SQL Results:</label>
+                    <input asp-for="MaxSqlResults" type="number" min="1" class="form-control" required />
+                    <span asp-validation-for="MaxSqlResults" class="text-danger"></span>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Search API</button>
+                </div>
+            </form>
+        </div>
 
         @* Display Error Messages *@
         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
@@ -42,8 +41,10 @@
         @* Display API Results *@
         @if (Model.ApiResult != null)
         {
+            <hr />
+            
             <div class="mt-4">
-                <h3>API Results</h3>
+                <h3>Search Results</h3>
                 <p>
                     <strong>Used Free Text Fallback:</strong> @Model.ApiResult.UsedFreeTextFallback <br />
                     <strong>Total SQL Result Count:</strong> @Model.ApiResult.TotalSqlResultCount
