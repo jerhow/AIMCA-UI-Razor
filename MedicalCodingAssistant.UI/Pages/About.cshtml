@@ -1,0 +1,23 @@
+@page
+@model AboutModel
+@{
+    ViewData["Title"] = "About this site";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <br />
+    This site provides a user interface to a medical coding assistant API.
+    <br /><br />
+    The API is designed to assist healthcare professionals in finding the appropriate ICD-10-CM codes for various diagnoses and clinical descriptions.
+    It leverages artificial intelligence and official ICD-10 data from <a href="https://CMS.gov" target="_blank">CMS.gov</a> (Centers for Medicare &amp; Medicaid Services) to provide intelligent recommendations based on the input provided by the user.
+    <br /><br />
+    With this UI, users can submit a natural language diagnosis or clinical description, and receive AI-curated recommendations for appropriate ICD-10-CM diagnostic codes. 
+    The AI also provides a ranking and confidence score for each recommendation, indicating the likelihood that the suggested code is the correct one for the given description.
+    <br /><br />
+    References:
+    <br />
+    - API: <a href="https://github.com/jerhow/AI-medical-coding-assistant" target="_blank">GitHub Repository</a>
+    <br />
+    - UI: <a href="https://github.com/jerhow/AIMCA-UI-Razor" target="_blank">GitHub Repository</a>
+</p>
