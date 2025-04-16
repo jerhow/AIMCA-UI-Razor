@@ -6,6 +6,9 @@ public class ApiResponse
 {
     public bool UsedFreeTextFallback { get; set; }
     public int TotalSqlResultCount { get; set; }
+    public string AiModel { get; set; } = string.Empty;
+    public string AiVersion { get; set; } = string.Empty;
+    public double AiTemperature { get; set; }
     public List<SearchResult> SearchResults { get; set; } = new List<SearchResult>();
 }
 

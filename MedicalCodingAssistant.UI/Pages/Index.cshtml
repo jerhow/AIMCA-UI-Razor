@@ -47,7 +47,10 @@
                 <h3>Search Results</h3>
                 <p>
                     <strong>Used Free Text Fallback:</strong> @Model.ApiResult.UsedFreeTextFallback <br />
-                    <strong>Total SQL Result Count:</strong> @Model.ApiResult.TotalSqlResultCount
+                    <strong>Total SQL Result Count:</strong> @Model.ApiResult.TotalSqlResultCount <br />
+                    <strong>OpenAI Version:</strong> @Model.ApiResult.AiVersion <br />
+                    <strong>OpenAI Model:</strong> @Model.ApiResult.AiModel <br />
+                    <strong>OpenAI Temperature:</strong> @Model.ApiResult.AiTemperature
                 </p>
 
                 @if (Model.ApiResult.SearchResults != null && Model.ApiResult.SearchResults.Any())
