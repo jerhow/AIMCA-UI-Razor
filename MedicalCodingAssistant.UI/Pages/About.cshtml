@@ -1,23 +1,208 @@
 @page
 @model AboutModel
 @{
-    ViewData["Title"] = "About this site";
+    ViewData["Title"] = "AI-Powered Medical Coding Assistant — System Summary";
 }
-<h1>@ViewData["Title"]</h1>
 
+<h1>@ViewData["Title"]</h1>
+<br />
+<h2>Purpose</h2>
 <p>
-    <br />
-    This site provides a user interface to a medical coding assistant API.
-    <br /><br />
-    The API is designed to assist healthcare professionals in finding the appropriate ICD-10-CM codes for various diagnoses and clinical descriptions.
-    It leverages artificial intelligence and official ICD-10 data from <a href="https://CMS.gov" target="_blank">CMS.gov</a> (Centers for Medicare &amp; Medicaid Services) to provide intelligent recommendations based on the input provided by the user.
-    <br /><br />
-    With this UI, users can submit a natural language diagnosis or clinical description, and receive AI-curated recommendations for appropriate ICD-10-CM diagnostic codes. 
-    The AI also provides a ranking and confidence score for each recommendation, indicating the likelihood that the suggested code is the correct one for the given description.
-    <br /><br />
-    References:
-    <br />
-    - API: <a href="https://github.com/jerhow/AI-medical-coding-assistant" target="_blank">GitHub Repository</a>
-    <br />
-    - UI: <a href="https://github.com/jerhow/AIMCA-UI-Razor" target="_blank">GitHub Repository</a>
+    The Medical Coding Assistant accepts a natural language clinical diagnosis or description (e.g.,
+    <code>"chronic bronchitis and emphysema"</code>) and returns <strong>relevant ICD-10-CM codes</strong>,
+    prioritized by clinical relevance. The assistant combines <strong>full-text database search</strong>
+    with <strong>LLM-powered interpretation and ranking</strong> to produce context-aware, accurate suggestions.
 </p>
+
+<br />
+<hr>
+
+<h2>How It Works</h2>
+<br />
+<h4>1. Initial Input (via REST API)</h5>
+<pre><code>{
+  "query": "chronic bronchitis and emphysema",
+  "maxSqlResults": 10
+}</code></pre>
+
+<br />
+<h5>2. SQL Full-Text Search</h5>
+<ul>
+    <li>The system performs a full-text search against a curated ICD-10-CM dataset from <a href="https://CMS.gov" target="_blank">CMS.gov</a> (Centers for Medicare &amp; Medicaid Services)</li>
+    <li>The search targets the <code>LongDescription</code> field using <code>CONTAINS</code> or <code>FREETEXT</code> (based on query content)</li>
+    <li>Results are ranked by SQL Server’s <code>RANK</code> function and limited to <code>maxSqlResults</code></li>
+</ul>
+
+<p>These initial results act as a <strong>baseline set of potentially relevant codes</strong>.</p>
+
+<br />
+<h5>3. Prompt Construction for GPT</h5>
+<p>
+    A user prompt is constructed that includes:
+</p>
+<ul>
+    <li>The original diagnosis text</li>
+    <li>List of ICD-10-CM codes returned by SQL, formatted with code + description</li>
+    <li>Instructions to re-rank codes, suggest new ones, provide reasoning, confidence, and source (<code>SQL</code> or <code>GPT</code>)</li>
+</ul>
+
+<p>This full prompt is sent to an Azure OpenAI model (currently <code>gpt-4</code>) for interpretation.</p>
+
+<br />
+<h5>4. AI Interpretation and Reranking</h5>
+
+The GPT model receives both:
+<ul>
+    <li>A <strong>system prompt</strong> (persistent behavioral instruction)</li>
+    <li>A <strong>user prompt</strong> (diagnosis + codes + action request)</li>
+</ul>
+
+<p>GPT returns a structured JSON array, such as:</p>
+
+<pre><code>[
+  {
+    "code": "J410",
+    "description": "Simple chronic bronchitis",
+    "rank": 1,
+    "reason": "Directly matches the chronic bronchitis diagnosis",
+    "confidence": 5,
+    "source": "sql"
+  },
+  {
+    "code": "J439",
+    "description": "Emphysema, unspecified",
+    "rank": 2,
+    "reason": "Explicitly addresses the emphysema mentioned in the diagnosis",
+    "confidence": 5,
+    "source": "gpt"
+  }
+]</code></pre>
+
+<p>This list includes <strong>re-ranked SQL results</strong> and <strong>GPT-suggested codes</strong>, merged into a single prioritized output.</p>
+
+<br />
+<h5>5. Code Normalization and Validation</h5>
+<ul>
+    <li>All codes are <strong>normalized</strong> (e.g., <code>J449</code> instead of <code>J44.9</code>) to match official CMS.gov formatting</li>
+    <li>Each GPT-suggested code is validated against the ICD-10-CM dataset to flag potential hallucinations</li>
+    <li>Codes not present in the dataset are marked as <code>IsValid: false</code></li>
+</ul>
+
+<br />
+<h5>6. Final Output Structure</h5>
+
+<p>The API response includes:</p>
+
+<pre><code>{
+  "UsedFreeTextFallback": true,
+  "TotalSqlResultCount": 43,
+  "AiModel": "gpt-4",
+  "AiVersion": "2025-01-01-preview",
+  "AiTemperature": 0.3,
+  "SearchResults": [
+    {
+      "code": "J410",
+      "description": "Simple chronic bronchitis",
+      "rank": 1,
+      "reason": "...",
+      "confidence": 5,
+      "source": "sql",
+      "IsValid": true
+    },
+    {
+      "code": "J439",
+      "description": "Emphysema, unspecified",
+      "rank": 2,
+      "reason": "...",
+      "confidence": 5,
+      "source": "gpt",
+      "IsValid": true
+    }
+  ]
+}</code></pre>
+
+<hr>
+
+<h2>Additional Enhancements</h2>
+<ul>
+    <li>Token usage logging and GPT variability auditing</li>
+    <li>Dynamic <code>maxSqlResults</code> configuration</li>
+    <li>Configurable OpenAI temperature</li>
+    <li>Structured logging to file or Application Insights (dev/prod aware)</li>
+    <li>AI layer can be swapped out for any LLM which provides a REST API</li>
+</ul>
+
+<br />
+<hr>
+
+<h2>Recommendation Logic Summary</h2>
+<table>
+<thead>
+<tr><th>Step</th><th>Role</th></tr>
+</thead>
+<tbody>
+<tr><td>SQL</td><td>Casts a <strong>wide net</strong> using lexical matching</td></tr>
+<tr><td>GPT</td><td>Acts as a <strong>semantic filter and enhancer</strong></td></tr>
+<tr><td>Code Validation</td><td>Ensures <strong>trustworthiness</strong> by verifying results</td></tr>
+<tr><td>Reranking</td><td>Produces an <strong>ordered, explainable</strong> output list</td></tr>
+</tbody>
+</table>
+
+<br />
+<hr>
+
+<h2>Technologies Used</h2>
+
+<h5>Backend</h5>
+<ul>
+    <li>.NET 8 Azure Function App (Minimal API)</li>
+    <li>C# for core logic and integration</li>
+    <li>Azure SQL Database with full-text indexing</li>
+</ul>
+
+<h5>AI Integration</h5>
+<ul>
+    <li>Azure OpenAI (currently using GPT-4 model)</li>
+    <li>Custom system and user prompts</li>
+    <li>Configurable model settings (temperature, deployment, etc.)</li>
+</ul>
+
+<h5>Infrastructure</h5>
+<ul>
+    <li>Hosted on Azure Linux Consumption Plan</li>
+    <li>Application Insights for production monitoring</li>
+    <li>Serilog for structured local log output</li>
+    <li>API Key authorization with environment-based configuration</li>
+</ul>
+
+<h5>Testing & Observability</h5>
+<ul>
+    <li>MSTest-based unit testing</li>
+    <li>LLM token usage logging</li>
+    <li>JSONL logging support for offline auditing</li>
+</ul>
+
+<h5>Frontend</h5>
+<ul>
+    <li>ASP.NET Razor Pages frontend</li>
+    <li>Hosted separately in Azure App Service</li>
+</ul>
+
+<br />
+<hr>
+
+<h2>Summary</h2>
+<p>
+    This system combines the speed of SQL full-text search with the semantic intelligence of a GPT-4 model
+    to return highly relevant ICD-10-CM codes for free-text clinical input. The pipeline balances structure,
+    explainability, and accuracy — with logging and configuration suitable for real-world usage and demonstration.
+</p>
+
+<br />
+<hr>
+
+<h2>Code</h2>
+<ul>
+    <li><a href="https://github.com/jerhow/AI-medical-coding-assistant" target="_blank">Backend</a></li>
+    <li><a href="https://github.com/jerhow/AIMCA-UI-Razor" target="_blank">Frontend</a></li>
+</ul>
