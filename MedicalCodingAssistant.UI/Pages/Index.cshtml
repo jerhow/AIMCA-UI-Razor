@@ -25,7 +25,10 @@
                     <span asp-validation-for="MaxSqlResults" class="text-danger"></span>
                 </div>
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">Search API</button>
+                    <button type="submit" class="btn btn-primary" id="search-button">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="search-spinner"></span>
+                        <span id="search-button-text">Search API</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -92,3 +95,29 @@
 
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('search-form');
+            const button = document.getElementById('search-button');
+            const spinner = document.getElementById('search-spinner');
+            const buttonText = document.getElementById('search-button-text');
+
+            if (form && button && spinner) {
+                form.addEventListener('submit', function() {
+                    // Disable the button
+                    button.disabled = true;
+
+                    // Show the spinner
+                    spinner.classList.remove('d-none');
+
+                    if (buttonText) {
+                         buttonText.innerText = 'Searching...'; // Or hide it: buttonText.classList.add('d-none');
+                         @* buttonText.classList.add('d-none'); // Alternatively, hide the button text *@
+                    }
+                });
+            }
+        });
+    </script>
+}
